@@ -50,6 +50,7 @@ app.post('/register-and-broadcast-node', function(req, res) {
     }
 
     const regNodesPromise = [];
+    // making request to each node in the network
     bitcoin.networkNodes.forEach(networkNodeUrl => {
         // '/register-node'
         const requestOptions = {
@@ -62,6 +63,7 @@ app.post('/register-and-broadcast-node', function(req, res) {
         regNodesPromise.push(rp(requestOptions));
     });
 
+    // registering all nodes with the newly aadded node
     Promise.all(regNodesPromise).then(data => {
         const bulkRegisterOptions = {
             uri: newNodeUrl + '/register-nodes-bulk',
@@ -77,7 +79,11 @@ app.post('/register-and-broadcast-node', function(req, res) {
 
 //register a node with the network
 app.post('/register-node', function(req, res) {
-    
+    const newNodeUrl = req.body.newNodeUrl;
+    const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(newNodeUrl) == -1;
+    const notCurrentNode = bitcoin.currentNodeUrl !== newNodeUrl;
+    if(nodeNotAlreadyPresent && notCurrentNode && newNodeUrl !== null) bitcoin.networkNodes.push(newNodeUrl);
+    res.json({note: 'New node register successfully'});
 });
 
 //register multiple nodes with the network
