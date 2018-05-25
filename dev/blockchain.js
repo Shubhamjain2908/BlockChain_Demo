@@ -28,16 +28,16 @@ Blockchain.prototype.getLastBlock = function() {
     return this.chain[this.chain.length - 1];
 }
 
-Blockchain.prototype.createNewTransactions = function(amount, sender, recipent) {
+Blockchain.prototype.createNewTransactions = function(amount, sender, recipient) {
     const newTranscation = {
         amount: amount,
         sender: sender,
-        recipent: recipent
+        recipient: recipient
     };
 
     this.pendingTransactions.push(newTranscation);
 
-    return this.getLastBlock['index'] + 1;
+    return this.getLastBlock()['index'] + 1;
 }
 
 Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce) {
@@ -59,7 +59,6 @@ Blockchain.prototype.proofOfWork = function(previousBlockHash, currentBlockData)
     while(hash.substring(0,4) !== '0000') {
         nonce++;
         hash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
-        console.log(hash);
     }
     return nonce;
 }
