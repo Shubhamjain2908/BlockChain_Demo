@@ -18,8 +18,32 @@ app.get('/blockchain', function(req, res){
 });
 
 app.post('/transaction', function(req, res){
-    const blockIndex = bitcoin.createNewTransactions(req.body.amount, req.body.sender, req.body.recipient);
-    res.json({note: `Transaction will be added in block ${blockIndex}.`});
+    const newTransaction = req.body;
+    const blockIndex = bitcoin.addTrascationToPendingTranscation(newTransaction);
+    res.json({note: `Transaction will be added in block ${blockIndex}`});
+});
+
+app.post('/transaction/broadcast', function(req, res){
+    const newTransaction = bitcoin.createNewTransactions(req.body.amount, req.body.sender, req.body.recipient);
+    bitcoin.addTrascationToPendingTranscation(newTransaction);
+
+    //broadcasting transcation
+    const requestPromises = [];
+    bitcoin.networkNodes.forEach(networkNodeUrl => {
+        const requestOptions = {
+            uri: networkNodeUrl + '/transaction',
+            method: 'POST',
+            body: newTransaction,
+            json: true
+        };
+        requestPromises.push(rp(requestOptions));
+    });
+
+    Promise.all(requestPromises).then(data => {
+        res.json({note: 'Transaction created and broadcast successfully. '});
+    }).catch(function (err) {
+        console.log(err);
+   });
 });
 
 app.get('/mine', function(req, res){
@@ -74,7 +98,9 @@ app.post('/register-and-broadcast-node', function(req, res) {
         return rp(bulkRegisterOptions);
     }).then(data => {
         res.json({ note: 'New node register with network successfully' });
-    });
+    }).catch(function () {
+        console.log("Promise Rejected");
+   });
 });
 
 //register a node with the network
